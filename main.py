@@ -26,7 +26,7 @@ async def get_json_from_htm(file:UploadFile):
     my_traducter = traducter(file=file.file)
     
 
-    return {"a":my_traducter.json_output}
+    return my_traducter.json_output
 
 
 

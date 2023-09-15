@@ -14,6 +14,9 @@ http://127.0.0.1:8000/docs
 
 
 # In azure cli
+## tuto
+https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-prepare-registry
+https://learn.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-deploy-app
 ## create a ressource groupe
 az group create --name api_bordereau_traducter --location westeurope
 ## create a container registry 

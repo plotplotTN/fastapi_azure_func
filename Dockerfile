@@ -1,5 +1,8 @@
 FROM python:3.9-slim
 
+
+ENV DOCKER_REGISTRY containerregistryfortraducterapi
+
 # Upgrade pip and install requirements
 COPY requirements.txt requirements.txt
 RUN pip install -U pip
