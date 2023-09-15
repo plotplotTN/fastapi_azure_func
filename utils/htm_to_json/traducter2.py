@@ -1,16 +1,18 @@
-
-import os 
-from bs4 import BeautifulSoup
-from datetime import datetime
+import os
 import re
 import json
+from datetime import datetime
+
+from bs4 import BeautifulSoup
+
 from utils.htm_to_json.fonction_to_traduct import *
 
-class traducter2:
+
+class Traducter:
 
 
     def __init__(self,file) -> None:
-
+        
         soup = BeautifulSoup(file.read(), "lxml")
         filters_dict = {}
         if soup.find("h2", id="filtre") is not None:
@@ -166,6 +168,15 @@ class traducter2:
             "regroupement": regroupement,
         }
 
-        self.json_output = json_output
+        print(json.dumps(json_output, ensure_ascii=False))
+        print('**********************')
+        print(demande)
+        print('**********************')
+        print(filter_final)
+        print('----------------------')
+        print('----------------------')
 
+        self.json_output = json.dumps(json_output, ensure_ascii=False)
         return None
+
+    
