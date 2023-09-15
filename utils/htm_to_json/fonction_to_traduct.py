@@ -1,13 +1,26 @@
 import re
 from datetime import datetime
 
-def mapping_period(value):
+def mapping_period(value, cat):
 
     if re.search(r"^(Fév\.|Mars |Avr\.|Mai |Juin |Jul\.|Août |Sep\.|Oct\.|Nov\.|Déc\.)@", value):
-        return "mois_an" 
+        if cat == "def":
+            return "mois_an"
+        else:
+            if re.search(r"/", value):
+                return "mois_an"
+            else:
+                return "mois_an_complet" 
     
     elif re.search(r"^Jan\. à @", value) :
-        return "cumul_an"
+        if cat == "def":
+            return 'cumul_an'
+        else:
+            if re.search(r"/", value):
+                return "cumul_an"
+            else:
+                return "cumul_an_complet"
+
     
     elif re.search(r"à", value) :
         return "cumul_12_mois_an"
@@ -69,9 +82,11 @@ def format_element(element):
 
 def decompo_element(element) :
     if element.endswith("FR"):
-        return "FRANCE"
+        return ["FRANCE"]
     elif element.endswith("OM"):
-        return "DOM"
+        return ["DOM"]
+    elif element.endswith("XXS"):
+        return ["FRANCE", "DOM"]
 
 
 def clean_string(s):
@@ -151,6 +166,27 @@ def consecutive_months_count(months_list):
             break
 
     return max_count
+
+def transformation_filtre (filtre) :
+
+    dict_operator={"<": "lt", ">": "gt", "<=": "le", ">=": "ge", "==": "eq", "!=": "ne"}
+    result_filter = []
+
+    for key, value in filtre.items() :
+        operator = "in"
+        if re.search(r"sauf", key) :
+            operator = "not in"
+            key = key.split('sauf')[0].strip()
+        if len(value) == 1 :
+            # Rechercher l'opérateur dans l'expression
+            match = re.search(r"(<|>|<=|>=|==|!=)", value[0])
+            if match:
+                operator_init = match.group(0)  # Récupérer l'opérateur correspondant
+                operator = dict_operator.get(operator_init, None)  # Traduire l'opérateur
+                value = value[0].split(operator_init)[1].strip()  # Récupérer la clé
+        filtre_operator = {"operator": operator, "value": value}
+        result_filter.append({key: filtre_operator})
+    return {"and": result_filter}
 
 #Permet de faire correspondre le nom de la colonne dans le bordereau avec le nom de la colonne dans la table snowflake
 mapping_bordereau_to_table_snowflake = {
