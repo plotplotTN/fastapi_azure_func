@@ -1,5 +1,5 @@
 services:
   uvicorn:
-    image: 
+    image: containerregistryfortraducterapi.azurecr.io/image_fastapi_traducter
     port:
       - '8000:8000'

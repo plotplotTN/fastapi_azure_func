@@ -58,6 +58,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
-          app-name: 'LLMAPPfilePusher'
+          app-name: 'fasta_traducter'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_89F97F1A5ACB4D42AD6DFCAD9B5AAFA2 }}
