@@ -1,0 +1,5 @@
+services:
+  uvicorn:
+    image: 
+    port:
+      - '8000:8000'
