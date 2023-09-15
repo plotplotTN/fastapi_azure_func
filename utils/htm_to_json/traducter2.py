@@ -168,15 +168,7 @@ class Traducter:
             "regroupement": regroupement,
         }
 
-        print(json.dumps(json_output, ensure_ascii=False))
-        print('**********************')
-        print(demande)
-        print('**********************')
-        print(filter_final)
-        print('----------------------')
-        print('----------------------')
-
-        self.json_output = json.dumps(json_output, ensure_ascii=False)
+        self.json_output = json_output
         return None
 
     
