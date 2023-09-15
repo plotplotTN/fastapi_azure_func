@@ -3,3 +3,5 @@ lxml
 python-multipart
 fastapi
 uvicorn
+requests
+azure-storage-blob
