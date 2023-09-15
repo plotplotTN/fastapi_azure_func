@@ -1,17 +1,16 @@
-import os
-import re
-from datetime import datetime
 
+import os 
 from bs4 import BeautifulSoup
+from datetime import datetime
+import re
+import json
+from utils.htm_to_json.fonction_to_traduct import *
 
-from utils.htm_to_json.function_to_traduct import *
-
-
-class traducter:
+class traducter2:
 
 
     def __init__(self,file) -> None:
-        
+
         soup = BeautifulSoup(file.read(), "lxml")
         filters_dict = {}
         if soup.find("h2", id="filtre") is not None:
@@ -55,13 +54,16 @@ class traducter:
         for row in inner_attributes.find_all("tr"):
             if row.td:
                 original_name = row.td.text.split(" ")[0]
-                attributes.append(original_name)
+                if original_name in mapping_bordereau_to_table_snowflake:
+                    new_name = mapping_bordereau_to_table_snowflake[original_name]
+                    attributes.append(new_name)
+                else:
+                    attributes.append(original_name)
+
                 if "Renommé en" in row.td.text:
                     renamed = row.td.text.split("Renommé en ")[1].split(")")[0]
                     rename.append(renamed)
                 else:
-                    if original_name in mapping_bordereau_to_table_snowflake:
-                        original_name = mapping_bordereau_to_table_snowflake[original_name]
                     rename.append(original_name)
 
 
@@ -90,7 +92,7 @@ class traducter:
             years = re.findall(r"(\d{4})", periode)
             year = years[-1]
             ecart = int(an_date_arrete) - int(year)
-            periode_type = mapping_period(periode)
+            periode_type = mapping_period(periode, periode_cat)
             periodes_finales.append({
                 "periode_type": periode_type,
                 "periode_cat": periode_cat,
@@ -109,8 +111,10 @@ class traducter:
             if 'Univers' in tr.text:
                 univers = tr.find_next('td').find_next('td').text
                 values_uni = [val.strip() for val in univers.split('et')]
-                values_uni = [decompo_element(val) for val in values_uni]
-                filters_dict['NOM_UNIVERS'] = values_uni
+                values_uni_final = []
+                for val in values_uni:
+                    values_uni_final.extend(decompo_element(val))
+                filters_dict['NOM_UNIVERS'] = values_uni_final
 
             if "Demande" in tr.text:
                 demande = tr.find_next('td').find_next('td').text
@@ -123,6 +127,8 @@ class traducter:
                 formats.append(format_value)
 
         format1, format2 = formats
+
+        filter_final = transformation_filtre(filters_dict)
 
         regroupement = {}
         if soup.find("h2", id="regroup") is not None:
@@ -146,11 +152,12 @@ class traducter:
         #     amenagement_section = soup.find("h2", id="amenager").find_next_sibling("table")
         #     amenagement = html_to_dict(amenagement_section)
 
+
         json_output = {
             "date_arrete": date_arrete,
             "periodes": periodes_finales,
             "attributes": attributes,
-            "filters": filters_dict,
+            "filters": filter_final,
             "rename": rename,
             "reseau": reseau,
             "format": format1,
@@ -158,14 +165,7 @@ class traducter:
             "demande": demande,
             "regroupement": regroupement,
         }
+
         self.json_output = json_output
+
         return None
-
-    
-
-if __name__ == "__main__":
-    for subdir, dirs, files in os.walk('C:\\Users\\romai\\Downloads\\bordereauxcsv-20230911T144458Z-001\\bordereauxcsv\\Joupodpe1_fichiers'):
-        if 'toprint.htm' in files:
-            with open(os.path.join(subdir,"toprint.htm"), "r", encoding="iso-8859-1") as file:
-                print(type(file))
-    pass

@@ -5,12 +5,12 @@ import os
 from bs4 import BeautifulSoup
 from datetime import datetime
 import re
-from utils.htm_to_json.function_to_traduct import *
-from utils.htm_to_json.traducter import traducter
+from utils.htm_to_json.fonction_to_traduct import *
+from utils.htm_to_json.traducter2 import traducter2
 import uvicorn
 import json 
-app = FastAPI()
 
+app = FastAPI()
 
 @app.get("/")
 def read_root():
@@ -19,13 +19,7 @@ def read_root():
 
 @app.post("/htm_to_json/")
 async def get_json_from_htm(file:UploadFile):
-
-    file_type = None
-
-
-    my_traducter = traducter(file=file.file)
-    
-
+    my_traducter = traducter2(file=file.file)
     return my_traducter.json_output
 
 
