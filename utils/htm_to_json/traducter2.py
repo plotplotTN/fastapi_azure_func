@@ -128,7 +128,7 @@ class Traducter:
                 format_value = tr.find_next('td').find_next('td').text.strip()
                 formats.append(format_value)
 
-        format1, format2 = formats
+        format_fichier, format_stat_ou_comm = formats
 
         filter_final = transformation_filtre(filters_dict)
 
@@ -162,8 +162,8 @@ class Traducter:
             "filters": filter_final,
             "rename": rename,
             "reseau": reseau,
-            "format": format1,
-            "format2": format2,
+            "format_fichier": format_fichier,
+            "format_stat_ou_comm": format_stat_ou_comm,
             "demande": demande,
             "regroupement": regroupement,
         }
