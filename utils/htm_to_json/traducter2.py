@@ -119,10 +119,11 @@ class Traducter:
                 filters_dict['NOM_UNIVERS'] = values_uni_final
 
             if "Demande" in tr.text:
-                demande = tr.find_next('td').find_next('td').text
+                self.demande = tr.find_next('td').find_next('td').text
 
             if "Réseau" in tr.text:
-                reseau = tr.find_next('td').find_next('td').text
+                reseau = tr.find_next('td').find_next('td').text.strip()
+                filters_dict['RAISON_SOCIALE'] = [reseau]
             
             if "Format" in tr.text:
                 format_value = tr.find_next('td').find_next('td').text.strip()
@@ -140,14 +141,14 @@ class Traducter:
             champ_group = regroup_section.find_all("tr")[1].find("td").text.strip()
             
             inner_regroup = regroup_section.find("table")
-            # Récupérer le nom de regroupement
-            group_name = inner_regroup.find("td", class_="tdright").text.strip()
-            
-            # Récupérer toutes les valeurs associées
-            values_table = inner_regroup.find("table")
-            regroup_values = [td.text.strip() for td in values_table.find_all("td")]
+            group_names = [td.text.strip() for td in inner_regroup.find_all("td", class_="tdright")]
 
-            regroupement[champ_group] = {"nom": group_name, "Valeurs": regroup_values}
+            regroupement[champ_group] = []
+
+            for i, values_table in enumerate(inner_regroup.find_all("table")):
+                regroup_values = [td.text.strip() for td in values_table.find_all("td")]
+                regroupement[champ_group].append({"nom": group_names[i], "Valeurs": regroup_values})
+            regroupement = format_regroupement(regroupement)
 
         # amenagement = {}
         # if soup.find("h2", id="amenager") is not None:
@@ -164,7 +165,7 @@ class Traducter:
             "reseau": reseau,
             "format_fichier": format_fichier,
             "format_stat_ou_comm": format_stat_ou_comm,
-            "demande": demande,
+            "demande": self.demande,
             "regroupement": regroupement,
         }
 
