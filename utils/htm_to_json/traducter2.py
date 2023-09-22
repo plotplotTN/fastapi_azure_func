@@ -2,7 +2,7 @@ import os
 import re
 import json
 from datetime import datetime
-
+import warnings
 from bs4 import BeautifulSoup
 
 from utils.htm_to_json.fonction_to_traduct import *
@@ -14,6 +14,13 @@ class Traducter:
     def __init__(self,file) -> None:
         
         soup = BeautifulSoup(file.read(), "lxml")
+
+        for tr in soup.find_all('tr'):
+            if 'Demande' in tr.text:
+                self.demande = tr.find_next('td').find_next('td').text
+
+        print(self.demande)
+
         filters_dict = {}
         if soup.find("h2", id="filtre") is not None:
             filters_section = soup.find("h2", id="filtre").find_next_sibling("table")
@@ -27,9 +34,20 @@ class Traducter:
                     inner_filters = tds[1].find("table")
                     if inner_filters:
                         # Récupérez chaque valeur à partir des <TD> de la table imbriquée
-                        values = [td.text.strip() for td in inner_filters.find_all("td")]
+                        values = [td.text for td in inner_filters.find_all("td")]
                     else:
                         values = [tds[1].text.strip()]
+                    
+                    if any(val.count('\xa0') >= 3 for val in values):
+                        warnings.simplefilter(action="always")
+                        warnings.warn(f'Le filtre de la demande {self.demande}doit être finalisé manuellement. \n'
+                                      "Si le filtre est déjà présent dans regroupement, alors déjà traité et garder uniquement le nom du regroupement. \n"
+                                      "Sinon, effectuer un filtre avec des 'and' et des 'or' correctement imbriqués")
+                        break
+
+                    else :
+                        values = [val.strip() for val in values]
+                    print(values)
                     if key in mapping_bordereau_to_table_snowflake:
                         key = mapping_bordereau_to_table_snowflake[key]
                     if key not in filters_dict:
@@ -118,9 +136,6 @@ class Traducter:
                     values_uni_final.extend(decompo_element(val))
                 filters_dict['NOM_UNIVERS'] = values_uni_final
 
-            if "Demande" in tr.text:
-                self.demande = tr.find_next('td').find_next('td').text
-
             if "Réseau" in tr.text:
                 reseau = tr.find_next('td').find_next('td').text.strip()
                 filters_dict['RAISON_SOCIALE'] = [reseau]
@@ -154,7 +169,7 @@ class Traducter:
         # if soup.find("h2", id="amenager") is not None:
         #     amenagement_section = soup.find("h2", id="amenager").find_next_sibling("table")
         #     amenagement = html_to_dict(amenagement_section)
-
+        print(self.demande)
 
         json_output = {
             "date_arrete": date_arrete,
