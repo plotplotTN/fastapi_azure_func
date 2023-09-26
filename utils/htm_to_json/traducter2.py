@@ -19,8 +19,6 @@ class Traducter:
             if 'Demande' in tr.text:
                 self.demande = tr.find_next('td').find_next('td').text
 
-        print(self.demande)
-
         filters_dict = {}
         if soup.find("h2", id="filtre") is not None:
             filters_section = soup.find("h2", id="filtre").find_next_sibling("table")
@@ -47,7 +45,6 @@ class Traducter:
 
                     else :
                         values = [val.strip() for val in values]
-                    print(values)
                     if key in mapping_bordereau_to_table_snowflake:
                         key = mapping_bordereau_to_table_snowflake[key]
                     if key not in filters_dict:
@@ -164,12 +161,28 @@ class Traducter:
                 regroup_values = [td.text.strip() for td in values_table.find_all("td")]
                 regroupement[champ_group].append({"nom": group_names[i], "Valeurs": regroup_values})
             regroupement = format_regroupement(regroupement)
+        
+        renommage = {}
+        if soup.find("h2", id="renommage") is not None:
+            rename_section = soup.find("h2", id="renommage").find_next_sibling("table")
+            
+            # Récupérer le nom de la variable
+            champ_rename = rename_section.find_all("tr")[1].find("td").text.strip()
+            
+            inner_rename = rename_section.find("table")
+            rename_names = [td.text.strip() for td in inner_rename.find_all("td", class_="tdright")]
+
+            renommage[champ_rename] = []
+
+            for i, values_table in enumerate(inner_rename.find_all("table")):
+                rename_values = [td.text.strip() for td in values_table.find_all("td")]
+                renommage[champ_rename].append({"nom": rename_names[i], "Valeurs": rename_values})
+            renommage = format_regroupement(renommage)
 
         # amenagement = {}
         # if soup.find("h2", id="amenager") is not None:
         #     amenagement_section = soup.find("h2", id="amenager").find_next_sibling("table")
         #     amenagement = html_to_dict(amenagement_section)
-        print(self.demande)
 
         json_output = {
             "date_arrete": date_arrete,
@@ -182,6 +195,7 @@ class Traducter:
             "format_stat_ou_comm": format_stat_ou_comm,
             "demande": self.demande,
             "regroupement": regroupement,
+            "renommage": renommage,
         }
 
         self.json_output = json_output

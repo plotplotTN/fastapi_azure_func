@@ -188,6 +188,7 @@ def transformation_filtre (filtre) :
         result_filter.append({key: filtre_operator})
     return {"and": result_filter}
 
+#Permet de convertir l'ancien type utilisé vers le nouveau format de regroupement (s'applique également aux renommages)
 def format_regroupement(regroupement):
     formatted_regroup = {}
     for key, regroups in regroupement.items():
