@@ -82,7 +82,7 @@ class Traducter:
                     rename.append(renamed)
                 else:
                     rename.append(original_name)
-
+        rename = ["DATE"] + rename + ["DATE_ARRETE", "VOLUME", "JO"]
 
         # Localisez d'abord la section 'Variables Colonne'
         periodes_section = soup.find("h2", id="colonne").find_next_sibling("table")
