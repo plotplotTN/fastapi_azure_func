@@ -117,7 +117,6 @@ class Traducter:
             for i in liste_index_trim :
                 i = i - compte
                 nombre_trim_successifs = consecutive_trim_count(periodes[i:])
-                print(nombre_trim_successifs)
                 del periodes[i+1:i+nombre_trim_successifs]
                 del truncated[i+1:i+nombre_trim_successifs]
                 if nombre_trim_successifs != 4:
@@ -151,10 +150,6 @@ class Traducter:
                 "ecart": ecart,
                 "truncated": truncated[i]
                 })
-        print(self.demande)
-        print(periodes_finales)
-        print('***************************')
-        print('***************************')
 
         date_arrete = fonction_date_arrete(date_arrete, periodes_finales[0]["periode_cat"])
 
