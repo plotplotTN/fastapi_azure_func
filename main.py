@@ -95,9 +95,4 @@ def get_ip():
 
 
 if __name__ == '__main__':
-    #uvicorn.run(app,host="127.0.0.1",port=8000)
-
-    import socket
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
-    print(local_ip)
+    uvicorn.run(app,host="127.0.0.1",port=8000)
