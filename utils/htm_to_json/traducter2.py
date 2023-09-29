@@ -36,15 +36,20 @@ class Traducter:
                     else:
                         values = [tds[1].text.strip()]
                     
-                    if any(val.count('\xa0') >= 3 for val in values):
-                        warnings.simplefilter(action="always")
-                        warnings.warn(f'Le filtre de la demande {self.demande}doit être finalisé manuellement. \n'
-                                      "Si le filtre est déjà présent dans regroupement, alors déjà traité et garder uniquement le nom du regroupement. \n"
-                                      "Sinon, effectuer un filtre avec des 'and' et des 'or' correctement imbriqués")
-                        break
+                    # if any(val.count('\xa0') >= 3 for val in values):
+                    #     warnings.simplefilter(action="always")
+                    #     warnings.warn(f'Le filtre de la demande {self.demande}doit être finalisé manuellement. \n'
+                    #                   "Si le filtre est déjà présent dans regroupement, alors déjà traité et garder uniquement le nom du regroupement. \n"
+                    #                   "Sinon, effectuer un filtre avec des 'and' et des 'or' correctement imbriqués.")
+                    #     break
+                    # else :
+                    values = [val.strip() for val in values]
 
-                    else :
-                        values = [val.strip() for val in values]
+                    # if any(">" in val or "<" in val or "De" in val for val in values):
+                    #     warnings.simplefilter(action="always")
+                    #     warnings.warn(f'Le filtre de la demande {self.demande} doit être vérifié. \n'
+                    #                 "Des opérations mathématiques peuvent être mises au lieu d'opérations sémantiques (et vice versa).")
+
                     if key in mapping_bordereau_to_table_snowflake:
                         key = mapping_bordereau_to_table_snowflake[key]
                     if key not in filters_dict:
@@ -90,15 +95,45 @@ class Traducter:
         inner_periodes = periodes_section.find("table")
 
         periodes = [td.text.strip() for td in inner_periodes.find_all('td') if td.text.strip()]
+        truncated = [False for _ in range(len(periodes))]
         periodes_finales = []
-        verif, liste_index = are_consecutives_values(periodes)
-        compte = 0
-        if verif:
-            for i in liste_index :
+        verif_month, liste_index_month = are_consecutives_values(periodes)
+        verif_trim, liste_index_trim = are_consecutives_values(periodes, val1="1 Trim.", val2="2 Trim.")
+        verif_sem, liste_index_sem = are_consecutives_values(periodes, val1="1 Sems.", val2="2 Sems.")
+        
+        if verif_month:
+            compte = 0
+            for i in liste_index_month :
                 i = i - compte
                 nombre_mois_successifs = consecutive_months_count(periodes[i:])
                 del periodes[i+1:i+nombre_mois_successifs]
+                del truncated[i+1:i+nombre_mois_successifs]
+                if nombre_mois_successifs != 12:
+                    truncated[i] = True
                 compte += nombre_mois_successifs - 1
+
+        if verif_trim:
+            compte = 0
+            for i in liste_index_trim :
+                i = i - compte
+                nombre_trim_successifs = consecutive_trim_count(periodes[i:])
+                print(nombre_trim_successifs)
+                del periodes[i+1:i+nombre_trim_successifs]
+                del truncated[i+1:i+nombre_trim_successifs]
+                if nombre_trim_successifs != 4:
+                    truncated[i] = True
+                compte += nombre_trim_successifs - 1
+        
+        if verif_sem:
+            compte = 0
+            for i in liste_index_sem :
+                i = i - compte
+                nombre_sem_successifs = consecutive_sems_count(periodes[i:])
+                del periodes[i+1:i+nombre_sem_successifs]
+                del truncated[i+1:i+nombre_sem_successifs]
+                if nombre_sem_successifs != 2:
+                    truncated[i] = True
+                compte += nombre_sem_successifs - 1
 
         for i, periode in enumerate(periodes):
             if '\x97' in periode :
@@ -113,7 +148,13 @@ class Traducter:
             periodes_finales.append({
                 "periode_type": periode_type,
                 "periode_cat": periode_cat,
-                "ecart": ecart})
+                "ecart": ecart,
+                "truncated": truncated[i]
+                })
+        print(self.demande)
+        print(periodes_finales)
+        print('***************************')
+        print('***************************')
 
         date_arrete = fonction_date_arrete(date_arrete, periodes_finales[0]["periode_cat"])
 

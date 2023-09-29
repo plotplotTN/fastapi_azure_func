@@ -29,21 +29,11 @@ def mapping_period(value, cat):
         return "an_moins_1"
     # Périodes trimestrielles
     elif re.search(r"^[1|2|3|4] Trim\.", value):
-        trimester_mapping = {
-            "1 Trim.": "trimestre1",
-            "2 Trim.": "trimestre2",
-            "3 Trim.": "trimestre3",
-            "4 Trim.": "trimestre4"
-        }
-        return trimester_mapping[re.search(r"^[1|2|3|4] Trim\.", value).group()]
+        return "trimX4_an"
     
     # Périodes semestrielles
     elif re.search(r"^[1|2] Sems\.", value):
-        semester_mapping = {
-            "1 Sems.": "semestre1",
-            "2 Sems.": "semestre2"
-        }
-        return semester_mapping[re.search(r"^[1|2] Sems\.", value).group()]
+        return "semX2_an"
     
     elif re.search(r"^Jan\.@", value):
         return "moisX12_an"
@@ -167,6 +157,62 @@ def consecutive_months_count(months_list):
 
     return max_count
 
+
+def consecutive_trim_count(trimesters_list):
+        # Dictionnaire pour convertir le nom du mois en numéro
+    trimester_to_num = {
+        '1 Trim.': 1, '2 Trim.': 2, '3 Trim.': 3, '4 Trim.': 4
+    }
+    
+    # Extraire les mois et les années
+    trims_and_years = []
+    for item in trimesters_list:
+        match = re.search(r"(\d\s?Trim\.)\s?@\s?(\d{4})", item)
+        if match:
+            trim = trimester_to_num.get(match.group(1), 0)
+            year = int(match.group(2))
+            trims_and_years.append((trim, year))
+    
+    # Compter les mois consécutifs pour la même année
+    max_count = 0
+    count = 1
+    for i in range(1, len(trims_and_years)):
+        if trims_and_years[i][1] == trims_and_years[i-1][1] and trims_and_years[i][0] == trims_and_years[i-1][0] + 1:
+            count += 1
+            max_count = max(max_count, count)
+        else:
+            break
+
+    return max_count
+
+
+def consecutive_sems_count(trimesters_list):
+        # Dictionnaire pour convertir le nom du mois en numéro
+    semester_to_num = {
+        '1 Sems.': 1, '2 Sems.': 2
+    }
+    
+    # Extraire les mois et les années
+    sems_and_years = []
+    for item in trimesters_list:
+        match = re.search(r"(\d\s?Sems\.)\s?@\s?(\d{4})", item)
+        if match:
+            sems = semester_to_num.get(match.group(1), 0)
+            year = int(match.group(2))
+            sems_and_years.append((sems, year))
+    
+    # Compter les mois consécutifs pour la même année
+    max_count = 0
+    count = 1
+    for i in range(1, len(sems_and_years)):
+        if sems_and_years[i][1] == sems_and_years[i-1][1] and sems_and_years[i][0] == sems_and_years[i-1][0] + 1:
+            count += 1
+            max_count = max(max_count, count)
+        else:
+            break
+
+    return max_count
+
 def transformation_filtre (filtre) :
 
     dict_operator={"<": "lt", ">": "gt", "<=": "le", ">=": "ge", "==": "eq", "!=": "ne"}
@@ -220,4 +266,8 @@ def format_regroupement(regroupement):
 #Permet de faire correspondre le nom de la colonne dans le bordereau avec le nom de la colonne dans la table snowflake
 mapping_bordereau_to_table_snowflake = {
     "DEPART": "CODE_DEPARTEMENT",
+    "CARROSSERIE": "CARROSSERIE_SAS",
+    "MARQUE_STT_VN": "ADMIN__MARQUE_STT_VN",
+    "GENRE_MOT": "ADMIN__GENRE_MOT",
+    "DEPARTEMENT": "NOM_DEPARTEMENT",
 }
