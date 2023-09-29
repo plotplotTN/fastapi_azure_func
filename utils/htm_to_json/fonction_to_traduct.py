@@ -188,6 +188,35 @@ def transformation_filtre (filtre) :
         result_filter.append({key: filtre_operator})
     return {"and": result_filter}
 
+#Permet de convertir l'ancien type utilisé vers le nouveau format de regroupement (s'applique également aux renommages)
+def format_regroupement(regroupement):
+    formatted_regroup = {}
+    for key, regroups in regroupement.items():
+
+        formatted_data = []
+        for group in regroups:
+
+            new_group = {}
+            # Vérifiez si l'une des valeurs contient "De"
+            if any("De" in val for val in group["Valeurs"]):  
+                
+                for val in group["Valeurs"]:
+                    new_group = {}
+                    # Récupération des limites de l'intervalle pour chaque valeur.
+                    limits = [int(s) for s in val.split() if s.isdigit()]
+                    new_group["nom"] = val
+                    new_group["operator"] = "between"
+                    new_group["valeur"] = limits
+                    formatted_data.append(new_group)
+
+            else:  # Sinon, c'est une liste de valeurs.
+                new_group["nom"] = group["nom"]
+                new_group["operator"] = "in"
+                new_group["valeur"] = group["Valeurs"]
+                formatted_data.append(new_group)
+        formatted_regroup[key] = formatted_data
+    return formatted_regroup
+
 #Permet de faire correspondre le nom de la colonne dans le bordereau avec le nom de la colonne dans la table snowflake
 mapping_bordereau_to_table_snowflake = {
     "DEPART": "CODE_DEPARTEMENT",
